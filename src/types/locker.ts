@@ -1,3 +1,5 @@
+import { Product } from "./order";
+
 export interface Machine {
 	id: string;
 	name: string;
@@ -10,6 +12,7 @@ export interface Locker {
 	id: number;
 	isOpen: boolean;
 	isOccupied: boolean;
+	products: Product[];
 }
 
 export interface SmartLockerGridProps {

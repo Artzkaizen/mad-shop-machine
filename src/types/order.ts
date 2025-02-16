@@ -9,6 +9,9 @@ export interface Product {
 	id: number;
 	documentId: string;
 	name: string;
+	price: Price;
+	originalQuantity: number;
+	quantity: number;
 	description: string;
 	createdAt: string;
 	updatedAt: string;
