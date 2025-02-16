@@ -7,6 +7,7 @@ import { createRouter, RouterProvider } from "@tanstack/react-router";
 import "./index.css";
 // Import the generated route tree
 import { routeTree } from "./routeTree.gen";
+import { Toaster } from "sonner";
 
 // Create a new router instance
 const router = createRouter({ routeTree });
@@ -29,6 +30,7 @@ if (!rootElement.innerHTML) {
 			<QueryClientProvider client={queryClient}>
 				<RouterProvider router={router} />
 			</QueryClientProvider>
+			<Toaster richColors position="top-right" />
 		</StrictMode>
 	);
 }
