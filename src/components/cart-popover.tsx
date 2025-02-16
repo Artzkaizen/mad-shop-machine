@@ -2,12 +2,13 @@ import { ShoppingCart } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Separator } from "@/components/ui/separator"
+
 
 
 import { useCart } from "@/store/cart"
 import { toast } from "sonner"
 import { useMachineStore } from "@/store/machine"
+import { Separator } from "./ui/seperator"
 
 export default function CartPopover() {
   const { cart, resetCart } = useCart();
