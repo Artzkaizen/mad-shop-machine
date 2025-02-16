@@ -11,7 +11,7 @@ import { useMachineStore } from "@/store/machine"
 
 export default function CartPopover() {
   const { cart, resetCart } = useCart();
-  const {resetMachines} = useMachineStore()
+  const {resetMachines, checkAllDoorsClosed} = useMachineStore()
   const totalPrice = cart.reduce((sum, item) => sum + item.price, 0)
 
   return (
@@ -47,11 +47,16 @@ export default function CartPopover() {
         disabled={!cart.length}
         onClick={() => 
         {
-          resetCart()
-          resetMachines()
-          toast.success("Checkout Succcessful", {
-            description: "Thanks for shopping with us!",
-          })
+          if(checkAllDoorsClosed())
+          {
+            resetCart()
+            resetMachines()
+            toast.success("Checkout Succcessful", {
+              description: "Thanks for shopping with us!",
+            })
+            return
+          }
+          toast.error("Please close all doors before checking out")
         }}
         >Checkout</Button>
       </PopoverContent>

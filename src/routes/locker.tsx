@@ -8,7 +8,7 @@ import { Machines } from "@/components/machine";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import useAuthStore from "@/store/auth";
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 
 import CartPopover from "@/components/cart-popover";
 import { useMachineStore } from "@/store/machine";
@@ -29,6 +29,8 @@ export const Route = createFileRoute("/locker")({
 });
 
 function SmartLockerApp() {
+  const logout = useAuthStore(state => state.logout);
+  const user = useAuthStore(state => state.user);
   const { addToCart, removeFromCart, resetCart } = useCart();
   const [isScanned, setIsScanned] = useState(false);
   const {
@@ -74,6 +76,15 @@ function SmartLockerApp() {
     }
   }, [selectedMachine]);
 
+  const navigate = useNavigate()
+  useEffect(() => {
+    if (!user) {
+      navigate({
+      to: "/login",
+    });
+  }
+  }, [user]);
+
   return (
     <section className="flex flex-col items-center min-h-screen bg-gradient-to-br from-gray-900 to-black p-4">
       <Dialog open={selectedLocker !== null} onOpenChange={() => setSelectedLocker(null)}>
@@ -114,6 +125,7 @@ function SmartLockerApp() {
       </Dialog>
       <header className="flex gap-2 items-center w-full p-4 mb-8">
         <h1 className="text-2xl font-bold text-white">Smart Locker System</h1>
+        <Button onClick={logout} className="bg-red-500" variant={'destructive'}>Log out</Button>
         <RotateCcw className="ml-auto" onClick={()=> {
           resetMachines();
           resetCart();
@@ -143,7 +155,7 @@ function SmartLockerApp() {
               >
                 {isQrScannerOpen ? (
                   <div className="absolute inset-0 z-10 bg-black/80 flex flex-col items-center justify-center">
-                     <Scanner onScan={(result) => handleQrCodeScan(result[0].rawValue)} />
+                     <Scanner onScan={(result) => handleQrCodeScan(result[0].rawValue) } allowMultiple/>
                     <button
                       onClick={() => toggleQrScanner(false)}
                       className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg"
@@ -178,7 +190,11 @@ function SmartLockerApp() {
                 <div className="transform hover:scale-105 transition-transform duration-300">
                   <Machines
                     machines={machines}
-                    onMachineSelect={setSelectedMachine}
+                    onMachineSelect={(machineId) => {
+                      if (!selectedMachine)
+                        setSelectedMachine(machineId);
+                    }
+                    }
                     selectedMachine={selectedMachine}
                   />
                   <div className="flex gap-2 mt-4">

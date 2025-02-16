@@ -3,7 +3,6 @@ import type { Machine } from "@/types/locker";
 import { toast } from "sonner";
 import { create } from "zustand";
 
-
 type MachineState = {
   machines: Record<string, Machine>;
   selectedMachine: string | null;
@@ -12,7 +11,6 @@ type MachineState = {
   showQrCodes: boolean;
 };
 
-// Add this to your MachineActions type
 type MachineActions = {
   setSelectedMachine: (machineId: string | null) => void;
   setSelectedLocker: (lockerId: number | null) => void;
@@ -22,8 +20,9 @@ type MachineActions = {
   handleQrScan: (result: string) => void;
   updateProductQuantity: (productId: number, increment: boolean) => void;
   resetMachines: () => void;
+  closeAllLockers: () => void;
+  checkAllDoorsClosed: () => boolean;
 };
-
 
 const initialState: MachineState = {
   machines: INITIAL_MACHINES,
@@ -42,6 +41,35 @@ export const useMachineStore = create<MachineState & MachineActions>()((set, get
       machines: INITIAL_MACHINES
     }));
   },
+
+  closeAllLockers: () => {
+    const { machines } = get();
+    const updatedMachines = Object.entries(machines).reduce((acc, [machineId, machine]) => ({
+      ...acc,
+      [machineId]: {
+        ...machine,
+        lockers: machine.lockers.map(locker => ({
+          ...locker,
+          isOpen: false
+        }))
+      }
+    }), {});
+
+    set({ 
+      machines: updatedMachines,
+      selectedLocker: null 
+    });
+    
+    toast.success("All lockers closed successfully!");
+  },
+
+checkAllDoorsClosed: () => {
+  const { machines } = get();
+  return Object.values(machines).every((machine) =>
+    machine.lockers.every((locker) => !locker.isOpen)
+  );
+},
+
   setSelectedMachine: (machineId) => set({ selectedMachine: machineId }),
 
   setSelectedLocker: (lockerId) => set({ selectedLocker: lockerId }),
@@ -57,7 +85,7 @@ export const useMachineStore = create<MachineState & MachineActions>()((set, get
           ...machines[selectedMachine],
           lockers: machines[selectedMachine].lockers.map((locker) =>
             locker.id === lockerId
-              ? { ...locker, isOpen: !locker.isOpen }
+              ? { ...locker, isOpen: true }
               : locker
           ),
         },
@@ -73,7 +101,7 @@ export const useMachineStore = create<MachineState & MachineActions>()((set, get
   handleQrScan: (result) => {
     const { machines } = get();
     const matchedMachine = Object.values(machines).find(
-      (machine) => machine.qrCode === result
+      (machine) => machine.id === result
     );
 
     if (matchedMachine && matchedMachine.available) {

@@ -21,8 +21,11 @@ import {
     FormLabel,
     FormMessage
 } from "@/components/ui/form";
+import useAuthStore from "@/store/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { Loader2 } from "lucide-react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 
 const authFormSchema = (type: "login" | "sign-up") => z.object({
@@ -45,6 +48,7 @@ export function LoginForm({
     ...props
 }: React.ComponentPropsWithoutRef<"div">) {
 
+    const user = useAuthStore(state => state.user)
     const isSignUp = location.pathname.includes("sign-up");
     const formSchema = isSignUp ? authFormSchema("sign-up") : authFormSchema("login");
 
@@ -75,8 +79,17 @@ export function LoginForm({
                 password: data.password
             });
         }
-        console.log(data);
     };
+
+    const navigate = useNavigate()
+
+    useEffect(() => {
+        if (user) {
+            navigate({
+            to: "/locker",
+          });
+        }
+      }, [user]);
 
 
     return (
@@ -156,8 +169,15 @@ export function LoginForm({
                                             )}
                                         />
 
-                                        <Button type="submit" className="w-full">
-                                            Login
+                                        <Button type="submit" className="w-full" disabled={login.isPending || register.isPending}>
+                                            {(login.isPending || register.isPending) ? (
+                                                <div className="flex items-center gap-2">
+                                                    <Loader2 size={20} className="animate-spin" />
+                                                    <span>Loading...</span>
+                                                </div>
+                                            ) : (
+                                                isSignUp ? "Login" : "Sign up"
+                                            )}
                                         </Button>
                                     </div>
                                     <div className="mt-4 text-center text-sm">
