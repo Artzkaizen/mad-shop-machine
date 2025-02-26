@@ -221,70 +221,74 @@ export const MachineProvider = (props: MachineProviderProps) => {
             },
           
             updateProductQuantity: (productId, increment) => {
-
               const { selectedMachine, selectedLocker, machines } = get();
+            
               if (!selectedMachine || !selectedLocker) {
                 toast.error("Please select both machine and locker");
                 return;
               }
-          
-              const updatedMachines = machines.map((m) => ({
-                ...m,
-                lockers: m.lockers.map((l) => ({ ...l, stocks: l.stocks.map(s => ({...s})) })),
-              }));
-          
-              const machineIndex = updatedMachines.findIndex(m => m.id === selectedMachine.id);
-              if (machineIndex === -1) {
-                toast.error("Selected machine not found");
+
+
+              const locker = selectedMachine.lockers.find((locker) => locker.id === selectedLocker);
+
+              if (!locker) {
+                toast.error("Locker not found");
                 return;
               }
-          
-              const lockerIndex = updatedMachines[machineIndex].lockers.findIndex(l => l.id === selectedLocker);
-              if (lockerIndex === -1) {
-                toast.error("Selected locker not found");
-                return;
-              }
-          
-              const stockIndex = updatedMachines[machineIndex].lockers[lockerIndex].stocks.findIndex(s => s.product.documentId === productId);
+
+            
+              const stockIndex = locker.stocks.findIndex(s => s.product.documentId === productId);
               if (stockIndex === -1) {
                 toast.error("Product not found");
                 return;
               }
-          
-              const stock = updatedMachines[machineIndex].lockers[lockerIndex].stocks[stockIndex];
-          
+            
+              const stock = locker.stocks[stockIndex]
+
+
+            
               let newQuantity = stock.quantity;
               if (increment) {
                 newQuantity = Math.min((stock.quantity || 0) + 1, stock.originalQuantity || 0);
               } else {
                 newQuantity = Math.max((stock.quantity || 0) - 1, 0);
               }
-
-              console.log(newQuantity, stock.quantity)
-
+            
+            
               if (newQuantity !== stock.quantity) {
                 const updatedStock = {
                   ...stock,
                   quantity: newQuantity,
                 };
-                const updatedLockers = updatedMachines[machineIndex].lockers.map((locker, idx) =>
-                  idx === lockerIndex
+
+                const updatedLockers = selectedMachine.lockers.map((locker) =>
+                  locker.id === selectedLocker
                     ? {
                         ...locker,
-                        stocks: locker.stocks.map((s, sIdx) =>
-                          sIdx === stockIndex ? updatedStock : s
+                        stocks: locker.stocks.map((s) =>
+                          s.product.documentId === productId ? updatedStock : s
                         ),
                       }
                     : locker
                 );
+
+                console.log(updatedLockers)
                 const updatedMachine = {
-                  ...updatedMachines[machineIndex],
+                  ...selectedMachine,
                   lockers: updatedLockers,
                 };
-                const newMachines = updatedMachines.map((m, idx) =>
-                  idx === machineIndex ? updatedMachine : m
+                const newMachines = machines.map((m) =>
+                {
+                  console.log(updatedMachine.id, m.id)
+                  return m.id === selectedMachine.id ? {
+                    ...m,
+                    lockers: updatedLockers
+                  } : m
+                }
                 );
-          
+
+                console.log(newMachines)
+            
                 set({ machines: newMachines });
               }
             },

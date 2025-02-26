@@ -33,7 +33,10 @@ function LockerPage() {
         if (!acc[key]) {
           acc[key] = [];
         }
-        acc[key].push(stock);
+        acc[key].push({
+          ...stock,
+          originalQuantity: stock.quantity,
+        });
         return acc;
       },
       {}

@@ -1,6 +1,6 @@
 import { useCart } from "@/store/cart";
 import { Scanner } from "@yudiel/react-qr-scanner";
-import { Minus, Plus, RotateCcw, Server } from "lucide-react";
+import { Minus, Plus, RotateCcw, ScanLine, Server } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 
 import { LockerGrid } from "@/components/locker-grid";
@@ -33,6 +33,7 @@ type CheckoutFlow = "MACHINE" | "ORDER";
 
 
 function SmartLockerApp() {
+    const pickupQuery = usePickup();
     const updatePickup = useUpdatePickUpStatus();
     const user = useAuthStore((state) => state.user);
     const logout = useAuthStore((state) => state.logout);
@@ -84,14 +85,7 @@ function SmartLockerApp() {
         name: stock.product.name,
         price: stock.product.price.netPrice,
       });
-
-      const updatedStock = selectedMachine?.lockers.find(
-        (locker) => locker.id === selectedLocker
-      )?.stocks.find((s) => s.id === stock.id);
-
-      if (updatedStock) {
         updateProductQuantity(stock.product.documentId, false);
-      }
     };
   
     const handleRemoveFromCart = (productId: string) => {
@@ -99,7 +93,6 @@ function SmartLockerApp() {
       updateProductQuantity(productId, true);
     };
   
-    const pickupQuery = usePickup();
     const handleOrderQrCodeScan = async (value: string) => {
       const { data: pickup } = await pickupQuery.mutateAsync(value);
   
@@ -115,7 +108,6 @@ function SmartLockerApp() {
         });
         handleQrScan(value, productIds);
       } catch (error) {
-        void error
         console.log(error)
         toast.error("Failed to start order pickup");
       }
@@ -129,6 +121,9 @@ function SmartLockerApp() {
         });
       }
     }, [user]);
+
+    useEffect(() => {}, [cart])
+
   
     return (
       <section className="flex flex-col items-center min-h-screen bg-gradient-to-br from-gray-900 to-black p-4">
@@ -174,7 +169,7 @@ function SmartLockerApp() {
                             handleRemoveFromCart(stock.product.documentId)
                           }
                         >
-                          <Minus className="h-4 w-4" />
+                          <Minus className="size-4" />
                         </Button>
                         <span>{stock.quantity}</span>
                         <Button
@@ -184,7 +179,7 @@ function SmartLockerApp() {
                             handleAddToCart(stock);
                           }}
                         >
-                          <Plus className="h-4 w-4" />
+                          <Plus className="size-4" />
                         </Button>
                       </div>
                     </div>
@@ -314,47 +309,55 @@ function SmartLockerApp() {
                 ) : selectedMachine && showLockers ? (
                   <LockerGrid machine={selectedMachine} />
                 ) : (
-                  <div className="flex flex-col items-center justify-center h-full min-h-[400px] bg-white/5 backdrop-blur-md rounded-xl p-6 border border-white/10">
+                    <div className="flex flex-col items-center justify-center h-full min-h-[400px] bg-white/5 backdrop-blur-md rounded-xl p-6 border border-white/10">
                     {/* STEP 1: Select Flow */}
                     {!selectedFlow ? (
-                      <>
-                        <Server className="w-16 h-16 text-white/40 mb-4" />
-                        <p className="text-white/80 text-lg font-medium mb-4">
-                          Select Transaction Mode
-                        </p>
-                        <RadioGroup
-                          value={selectedFlow ?? undefined}
-                          onValueChange={(value: CheckoutFlow) =>
-                            setSelectedFlow(value)
-                          }
-                          className="mb-4 flex "
-                        >
-                          <div className="flex items-center space-x-2 border border-white/10 rounded-lg p-2 **:hover:cursor-pointe">
-                            <RadioGroupItem value="MACHINE" id="machine" />
-                            <Label htmlFor="machine" className="text-white">
-                              Order Pickup
-                            </Label>
-                          </div>
-                          <div className="flex items-center space-x-2 border border-white/10 rounded-lg p-2 **:hover:cursor-pointer">
-                            <RadioGroupItem value="ORDER" id="order" />
-                            <Label htmlFor="order" className="text-white">
-                              Machine Purchase
-                            </Label>
-                          </div>
-                        </RadioGroup>
-                      </>
+                      <motion.div className="contents" 
+                    transition={{ delay: 0.3, ease: "easeInOut" }}
+                      initial={{ x: -50, opacity: 0 }}
+                      animate={{ x: 0, opacity: 1 }} 
+                      >
+                      <ScanLine className="w-16 h-16 text-white/40 mb-4" />
+                      <p className="text-white/80 text-lg font-medium mb-4">
+                        Select Transaction Mode
+                      </p>
+                      <RadioGroup
+                        value={selectedFlow ?? undefined}
+                        onValueChange={(value: CheckoutFlow) =>
+                        setSelectedFlow(value)
+                        }
+                        className="mb-4 flex "
+                      >
+                        <div className="flex items-center space-x-2 border border-white/10 rounded-lg p-2 hover:cursor-pointer">
+                        <RadioGroupItem value="MACHINE" id="machine" />
+                        <Label htmlFor="machine" className="text-white">
+                          Order Pickup
+                        </Label>
+                        </div>
+                        <div className="flex items-center space-x-2 border border-white/10 rounded-lg p-2 hover:cursor-pointer">
+                        <RadioGroupItem value="ORDER" id="order" />
+                        <Label htmlFor="order" className="text-white">
+                          Machine Purchase
+                        </Label>
+                        </div>
+                      </RadioGroup>
+                      </motion.div>
                     ) : (
-                      <>
-                        <Server className="w-16 h-16 text-white/40 mb-4" />
-                        <p className="text-white/80 text-lg font-medium">
-                          Please Select a machine
-                        </p>
-                        <p className="text-white/60 text-sm mt-2">
-                          Select the machine to continue
-                        </p>
-                      </>
+                      <motion.div className="contents"
+                      transition={{ delay: 0.3, ease: "easeInOut" }}
+                      initial={{ x: -50, opacity: 0 }}
+                      animate={{ x: 0, opacity: 1 }} 
+                      >
+                      <Server className="w-16 h-16 text-white/40 mb-4" />
+                      <p className="text-white/80 text-lg font-medium">
+                        Please Select a machine
+                      </p>
+                      <p className="text-white/60 text-sm mt-2">
+                        Select the machine to continue
+                      </p>
+                      </motion.div>
                     )}
-                  </div>
+                    </div>
                 )}
               </motion.div>
   
