@@ -6,27 +6,76 @@ import { twMerge } from "tailwind-merge";
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
-import products from "@/lib/products.json";
+
 import { Product } from "@/types/order";
 
-export function getRandomProducts(count: number): Product[] {
-  if (count > products.length) {
-    throw new Error("Requested product count exceeds available products");
+export type Stock = {
+  id: number;
+  quantity: number;
+  product: Product;
+  originalQuantity: number;
+};
+export function getRandomStocks(count: number, stocks: Stock[]): Product[] {
+  if (count > stocks.length) {
+    throw new Error("Requested product count exceeds available stocks");
   }
-  const shuffled = products.sort(() => 0.5 - Math.random());
-  return shuffled.slice(0, count).map((product) => ({
-    id: product.id,
-    name: product.name,
-    price: product.price,
-    quantity: product.quantity,
-    originalQuantity: product.quantity,
-    documentId: crypto.randomUUID(),
-    description: product.name,
-    createdAt: Date.now().toLocaleString(),
-    updatedAt: Date.now().toLocaleString(),
-    imageUrl: "product.imageUrl",
-    category: "product.category",
-    publishedAt: Date.now().toLocaleString(),
-    productStatus: "ACTIVE",
-  }));
+
+  const shuffled = [...stocks].sort(() => 0.5 - Math.random()).slice(0, count);
+
+  return shuffled.map((stock) => {
+    const randomQuantity = Math.floor(Math.random() * stock.quantity) + 1;
+
+    return {
+      ...stock.product,
+      quantity: randomQuantity,
+      originalQuantity: stock.quantity,
+    };
+  });
+}
+
+export function distributeProducts(
+  stocks: Stock[],
+  lockerCount: number
+): Stock[][] {
+  const distributions: Stock[][] = Array(lockerCount).fill([]);
+  const stocksCopy = [...stocks];
+
+  stocksCopy.forEach((stock) => {
+    let remainingQuantity = stock.quantity;
+
+    while (remainingQuantity > 0) {
+      const lockerIndex = Math.floor(Math.random() * lockerCount);
+      const maxQuantity = Math.min(
+        remainingQuantity,
+        Math.ceil(remainingQuantity / 2)
+      );
+      const quantityForLocker = Math.max(
+        1,
+        Math.floor(Math.random() * maxQuantity)
+      );
+
+      const stockForLocker: Stock = {
+        id: stock.id,
+        quantity: quantityForLocker,
+        product: stock.product,
+        originalQuantity: stock.originalQuantity,
+      };
+
+      distributions[lockerIndex] = [
+        ...(distributions[lockerIndex] || []),
+        stockForLocker,
+      ];
+
+      remainingQuantity -= quantityForLocker;
+    }
+  });
+
+  return distributions;
+}
+
+export function formatCurrency(value: number, currency: string = "USD") {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency,
+  }).format(value);
 }

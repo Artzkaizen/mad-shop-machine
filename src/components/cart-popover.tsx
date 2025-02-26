@@ -1,19 +1,15 @@
-import { ShoppingCart } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { ScrollArea } from "@/components/ui/scroll-area"
-
-
+import { ShoppingCart } from "lucide-react"
 
 import { useCart } from "@/store/cart"
-import { toast } from "sonner"
-import { useMachineStore } from "@/store/machine"
 import { Separator } from "./ui/seperator"
+import { formatCurrency } from "@/lib/utils"
 
-export default function CartPopover() {
-  const { cart, resetCart } = useCart();
-  const {resetMachines, checkAllDoorsClosed} = useMachineStore()
-  const totalPrice = cart.reduce((sum, item) => sum + item.price, 0)
+export default function CartPopover({onCheckout}: {onCheckout: () => Promise<void>}) {
+  const { cart } = useCart();
+  const totalPrice = cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
 
   return (
     <Popover>
@@ -35,33 +31,20 @@ export default function CartPopover() {
                 <p className="font-medium">{item.name}</p>
                 <p className="text-sm text-muted-foreground">Qty: {item.quantity}</p>
               </div>
-              <p className="font-medium">${(item.price * item.quantity).toFixed(2)}</p>
+              <p className="font-medium">{formatCurrency(item.price * item.quantity, "EUR")}</p>
             </div>
           ))}
         </ScrollArea>
         <Separator className="my-4" />
         <div className="flex justify-between mb-4">
           <p className="font-medium">Total</p>
-          <p className="font-medium">${totalPrice.toFixed(2)}</p>
+          <p className="font-medium">{formatCurrency(totalPrice, "EUR")}</p>
         </div>
         <Button className="w-full"
         disabled={!cart.length}
-        onClick={() => 
-        {
-          if(checkAllDoorsClosed())
-          {
-            resetCart()
-            resetMachines()
-            toast.success("Checkout Succcessful", {
-              description: "Thanks for shopping with us!",
-            })
-            return
-          }
-          toast.error("Please close all doors before checking out")
-        }}
+        onClick={onCheckout}
         >Checkout</Button>
       </PopoverContent>
     </Popover>
   )
 }
-

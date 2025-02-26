@@ -12,7 +12,7 @@ import { Toaster } from "sonner";
 // Create a new router instance
 const router = createRouter({ routeTree });
 
-// Register the router instance for type safety
+
 declare module "@tanstack/react-router" {
 	interface Register {
 		router: typeof router;
@@ -21,7 +21,7 @@ declare module "@tanstack/react-router" {
 
 const queryClient = new QueryClient();
 
-// Render the app
+
 const rootElement = document.getElementById("root")!;
 if (!rootElement.innerHTML) {
 	const root = ReactDOM.createRoot(rootElement);
@@ -30,7 +30,7 @@ if (!rootElement.innerHTML) {
 			<QueryClientProvider client={queryClient}>
 				<RouterProvider router={router} />
 			</QueryClientProvider>
-			<Toaster richColors position="top-right" />
+			<Toaster richColors position="bottom-right" />
 		</StrictMode>
 	);
 }

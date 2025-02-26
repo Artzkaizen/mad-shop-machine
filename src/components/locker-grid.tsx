@@ -1,33 +1,18 @@
 import { Lock } from "lucide-react";
 
+import { useMachineContext } from "@/provider/machine-provider";
 import type { Machine } from "@/types/locker";
-import { useMachineStore } from "@/store/machine";
 
 interface LockerGridProps {
-	machine: Machine;
-	onLockerToggle: (lockerId: number) => void;
+	machine: Machine | undefined;
 }
 
-export function LockerGrid({ machine, onLockerToggle }: LockerGridProps) {
-
-	const closeAllLockers = useMachineStore(state => state.closeAllLockers)
-	
-	const handleOpen = (lockerId: number) => {
-		onLockerToggle(lockerId);
-		const locker = machine.lockers.find(l => l.id === lockerId);
-		console.log('Opening locker:', locker);
-	};
-
-
-
+export function LockerGrid({ machine }: LockerGridProps) {
+  	const openLocker = useMachineContext((state) => state.openLocker);
+	if (!machine)
+		return null;
 	return (
 		<div className="flex flex-col items-center gap-4 w-full max-w-2xl">
-			<button
-				onClick={closeAllLockers}
-				className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-white/90 transition-colors"
-			>
-				Close All Lockers
-			</button>
 			<div className="grid grid-cols-4 gap-4 w-full">
 				{machine.lockers.map(locker => (
 					<div key={locker.id} className="aspect-square">
@@ -35,9 +20,7 @@ export function LockerGrid({ machine, onLockerToggle }: LockerGridProps) {
 							id={locker.id}
 							isOpen={locker.isOpen}
 							isOccupied={locker.isOccupied}
-							onToggle={() => {
-									handleOpen(locker.id);
-							}}
+							onToggle={() => openLocker(locker.id)}
 						/>
 					</div>
 				))}
@@ -54,6 +37,7 @@ interface LockerProps {
 }
 
 function Locker({ id, isOpen, isOccupied, onToggle }: LockerProps) {
+
 	return (
 		<div
 			onClick={onToggle}
