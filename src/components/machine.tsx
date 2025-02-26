@@ -1,6 +1,7 @@
 import { Server } from "lucide-react";
 
 import type { Machine } from "@/types/locker";
+import { toast } from "sonner";
 
 interface MachinesProps {
 	machines: Machine[];
@@ -19,6 +20,8 @@ export function Machines({
 				<div
 					key={machine.id}
 					onClick={() => {
+						if (!machine.available)
+							return toast.error("Machine is not available");
 						onMachineSelect(selectedMachine?.id === machine.id ? null : machine)
 					}}
 					className={`bg-white/5 rounded-lg p-4 backdrop-blur-md cursor-pointer transition-all duration-300 ${
