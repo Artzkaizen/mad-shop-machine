@@ -20,7 +20,7 @@ export function Machines({
 				<div
 					key={machine.id}
 					onClick={() => {
-						if (!machine.available)
+						if (machine.machineStatus !== "ACTIVE")
 							return toast.error("Machine is not available");
 						onMachineSelect(selectedMachine?.id === machine.id ? null : machine)
 					}}
